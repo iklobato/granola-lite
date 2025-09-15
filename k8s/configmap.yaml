@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: notes-app-config
+  
+data:
+  DATABASE_URL: "postgresql://notes_user:password@notes-app-postgres-service:5432/notes_app"
+  POSTGRES_HOST: "notes-app-postgres-service"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "notes_app"
+  POSTGRES_USER: "notes_user"
+  OLLAMA_HOST: "http://notes-app-ollama-service:11434"
+  REACT_APP_API_URL: "http://notes-app-backend-service:8000"

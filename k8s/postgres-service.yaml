@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: notes-app-postgres-service
+  
+  labels:
+    app: notes-app-postgres
+spec:
+  selector:
+    app: notes-app-postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+    protocol: TCP
+  type: ClusterIP

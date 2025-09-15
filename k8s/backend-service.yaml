@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: notes-app-backend-service
+  
+  labels:
+    app: notes-app-backend
+spec:
+  selector:
+    app: notes-app-backend
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+    nodePort: 30080
+  type: NodePort

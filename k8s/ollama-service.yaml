@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: notes-app-ollama-service
+  
+  labels:
+    app: notes-app-ollama
+spec:
+  selector:
+    app: notes-app-ollama
+  ports:
+  - port: 11434
+    targetPort: 11434
+    protocol: TCP
+  type: ClusterIP

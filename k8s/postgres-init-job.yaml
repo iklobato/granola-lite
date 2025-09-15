@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: postgres-init
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: postgres-init
+        image: pgvector/pgvector:pg16
+        command:
+        - /bin/bash
+        - -c
+        - |
+          PGPASSWORD=$$POSTGRES_PASSWORD psql -h notes-app-postgres-service -U notes_user -d notes_app -c "
+          CREATE EXTENSION IF NOT EXISTS vector;
+          
+          -- Create notes table
+          CREATE TABLE IF NOT EXISTS notes (
+              id SERIAL PRIMARY KEY,
+              title VARCHAR(255) NOT NULL,
+              content TEXT NOT NULL,
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+          
+          -- Create vector embeddings table
+          CREATE TABLE IF NOT EXISTS note_embeddings (
+              id SERIAL PRIMARY KEY,
+              note_id INTEGER REFERENCES notes(id) ON DELETE CASCADE,
+              embedding VECTOR(768), -- nomic-embed-text dimension
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+          
+          -- Create index for vector similarity search
+          CREATE INDEX IF NOT EXISTS note_embeddings_embedding_idx 
+          ON note_embeddings USING ivfflat (embedding vector_cosine_ops) 
+          WITH (lists = 100);
+          
+          -- Note: Function and trigger creation skipped for simplicity
+          "
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: notes-app-secret
+              key: POSTGRES_PASSWORD
+      
