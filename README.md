@@ -420,61 +420,219 @@ make monitoring-access
 | **Grafana Dashboard** | `http://127.0.0.1:30300` | admin / admin123 | Visual dashboards, metrics, alerts |
 | **Prometheus Metrics** | `http://127.0.0.1:30900` | - | Raw metrics, queries, targets |
 | **AlertManager** | `http://127.0.0.1:30903` | - | Alert management and routing |
-| **k9s (Terminal)** | `make k9s` | - | Real-time pod monitoring |
 
-### **📈 Real-Time Monitoring**
+### **📈 How to Use Monitoring Tools**
 
-#### **k9s - Terminal-Based Pod Monitoring**
-```bash
-# Open k9s for real-time monitoring
-make k9s
+#### **1. 📊 Grafana Dashboard (Primary Monitoring UI)**
 
-# Key k9s shortcuts:
-# - 'd' - Describe selected pod
-# - 'l' - View pod logs
-# - 's' - Shell into pod
-# - 'e' - Edit resource
-# - '?' - Help
-# - 'q' - Quit
+**Access**: `http://127.0.0.1:30300`
+**Login**: admin / admin123
+
+**What You Can Do:**
+- **View Pre-built Dashboards**: Kubernetes cluster overview, pod metrics, node metrics
+- **Create Custom Dashboards**: Build your own visualizations
+- **Set Up Alerts**: Configure notifications for critical metrics
+- **Explore Metrics**: Use PromQL queries to analyze data
+- **Export/Import Dashboards**: Share configurations
+
+**Key Dashboards Available:**
+- **Kubernetes Cluster Overview**: Overall cluster health
+- **Pod Metrics**: Individual pod performance
+- **Node Metrics**: Node resource usage
+- **Service Discovery**: All discovered targets
+
+#### **2. 🔍 Prometheus Metrics (Raw Data & Queries)**
+
+**Access**: `http://127.0.0.1:30900`
+
+**What You Can Do:**
+- **Query Metrics**: Use PromQL to query time-series data
+- **View Targets**: See all monitored services
+- **Explore Metrics**: Browse available metrics
+- **Set Up Rules**: Configure alerting rules
+- **View Alerts**: See active alerts
+
+**Useful PromQL Queries:**
+```promql
+# CPU usage by pod
+rate(container_cpu_usage_seconds_total[5m])
+
+# Memory usage by pod
+container_memory_usage_bytes
+
+# Pod restart count
+kube_pod_container_status_restarts_total
+
+# Service availability
+up{job="kubernetes-pods"}
+
+# Notes App specific queries
+up{job="notes-app-backend"} - Backend health
+rate(http_requests_total[5m]) - Request rate
+container_memory_usage_bytes{pod=~"notes-app-.*"} - Memory usage
+container_cpu_usage_seconds_total{pod=~"notes-app-.*"} - CPU usage
 ```
 
-#### **Grafana - Visual Dashboards**
+#### **3. 🚨 AlertManager (Alert Management)**
+
+**Access**: `http://127.0.0.1:30903`
+
+**What You Can Do:**
+- **View Active Alerts**: See all current alerts
+- **Silence Alerts**: Temporarily disable alerts
+- **Configure Routing**: Set up alert routing rules
+- **View Alert History**: See past alerts
+- **Test Alerts**: Send test notifications
+
+
+### **📊 What You Can Monitor**
+
+#### **Application Metrics:**
+- **Notes App Performance**: Response times, request rates
+- **Database Performance**: Query times, connection pools
+- **LLM Service**: Ollama response times, model usage
+- **Voice Features**: Speech recognition success rates
+
+#### **Infrastructure Metrics:**
+- **Pod Health**: CPU, memory, restart counts
+- **Service Availability**: Uptime, response times
+- **Resource Usage**: Node CPU, memory, disk
+- **Network Traffic**: Ingress/egress, latency
+
+#### **Business Metrics:**
+- **User Activity**: Notes created, Q&A sessions
+- **AI Usage**: Questions asked, response quality
+- **Voice Usage**: Dictation sessions, language preferences
+
+### **🚨 Alerting and Notifications**
+
+#### **Pre-configured Alerts:**
+- **Pod Restart Alerts**: Notify when pods restart frequently
+- **High CPU Usage**: Alert when CPU usage exceeds thresholds
+- **Memory Pressure**: Alert when memory usage is high
+- **Service Down**: Alert when services become unavailable
+- **Disk Space**: Alert when disk space is low
+- **Database Connection Issues**: When PostgreSQL is unreachable
+- **LLM Service Down**: When Ollama service is unavailable
+- **API Error Rate**: When error rate exceeds 5%
+
+#### **Alert Channels:**
+- **Email Notifications**: Send alerts via email
+- **Slack Integration**: Send alerts to Slack channels
+- **Webhook Alerts**: Send alerts to custom webhooks
+- **PagerDuty**: Integration with PagerDuty for critical alerts
+
+### **🔍 Debugging and Troubleshooting**
+
+#### **Quick Health Checks:**
 ```bash
-# Open Grafana dashboard
+# Check all pod status
+kubectl get pods
+
+# Check service status
+kubectl get services
+
+# Check pod logs
+kubectl logs -l app=notes-app-backend
+
+# Check resource usage
+kubectl top pods
+```
+
+#### **Advanced Debugging:**
+```bash
+# Describe problematic pods
+kubectl describe pod <pod-name>
+
+# Check events
+kubectl get events --sort-by=.metadata.creationTimestamp
+
+# Port forward for direct access
+kubectl port-forward svc/notes-app-backend-service 8000:8000
+```
+
+#### **Performance Analysis:**
+- **Grafana Dashboards**: Visual performance metrics
+- **Prometheus Queries**: Detailed performance analysis
+- **k9s Resource View**: Real-time resource monitoring
+- **Log Analysis**: Centralized log viewing
+
+### **📈 Metrics and Insights**
+
+#### **Key Performance Indicators (KPIs):**
+- **Response Time**: API response times
+- **Throughput**: Requests per second
+- **Error Rate**: Percentage of failed requests
+- **Availability**: Service uptime percentage
+- **Resource Utilization**: CPU, memory, disk usage
+
+#### **Business Metrics:**
+- **Active Users**: Number of concurrent users
+- **Notes Created**: Daily/weekly note creation
+- **AI Interactions**: Q&A session frequency
+- **Voice Usage**: Voice dictation usage patterns
+- **Feature Adoption**: Most used features
+
+### **🛠️ Monitoring Commands Reference**
+
+```bash
+# Monitoring Setup
+make monitoring-setup      # Install monitoring stack
+make monitoring-access     # Get access URLs
+make monitoring-logs       # View monitoring logs
+make monitoring-clean      # Clean up monitoring
+
+# Individual Tool Access
+make grafana              # Open Grafana dashboard
+make prometheus           # Open Prometheus metrics
+
+# Application Monitoring
+make minikube-logs        # View application logs
+make k8s-status          # Check deployment status
+```
+
+### **🔧 Monitoring Stack Components**
+
+| Component | Purpose | Port | Access |
+|-----------|---------|------|--------|
+| **Prometheus** | Metrics collection and storage | 30900 | `http://127.0.0.1:30900` |
+| **Grafana** | Visualization and dashboards | 30300 | `http://127.0.0.1:30300` |
+| **AlertManager** | Alert routing and management | 30903 | `http://127.0.0.1:30903` |
+| **kube-state-metrics** | Kubernetes state metrics | 8080 | Internal |
+| **node-exporter** | Node hardware metrics | 9100 | Internal |
+
+### **📋 Monitoring Best Practices**
+
+1. **Set Up Alerts**: Configure alerts for critical metrics
+2. **Create Dashboards**: Build custom dashboards for your use case
+3. **Monitor Trends**: Watch for performance trends over time
+4. **Log Analysis**: Regularly review logs for issues
+5. **Resource Planning**: Use metrics for capacity planning
+6. **Documentation**: Document monitoring procedures and alerts
+
+### **🚀 Quick Start with Monitoring**
+
+```bash
+# 1. Deploy monitoring stack
+make monitoring-setup
+
+# 2. Get access URLs
+make monitoring-access
+
+# 3. Open Grafana dashboard
 make grafana
+# Login: admin / admin123
 
-# Pre-configured dashboards:
-# - Kubernetes Cluster Overview
-# - Pod Metrics
-# - Node Metrics
-# - Application Metrics
-# - Custom Notes App Dashboard
-```
-
-#### **Prometheus - Metrics and Queries**
-```bash
-# Open Prometheus interface
+# 4. Open Prometheus metrics
 make prometheus
 
-# Useful queries for Notes App:
-# - up{job="notes-app-backend"} - Backend health
-# - rate(http_requests_total[5m]) - Request rate
-# - container_memory_usage_bytes{pod=~"notes-app-.*"} - Memory usage
-# - container_cpu_usage_seconds_total{pod=~"notes-app-.*"} - CPU usage
+# 5. View monitoring logs
+make monitoring-logs
 ```
 
-### **📊 Application-Specific Monitoring**
+### **📊 Custom Grafana Dashboards**
 
-#### **Notes App Metrics**
-- **Request Rate**: API calls per second
-- **Response Time**: Average response time
-- **Error Rate**: Failed requests percentage
-- **Memory Usage**: Per-service memory consumption
-- **CPU Usage**: Per-service CPU utilization
-- **Database Connections**: PostgreSQL connection pool
-- **LLM Usage**: Ollama model inference metrics
-
-#### **Custom Grafana Dashboards**
+#### **Notes App Specific Dashboards:**
 1. **Notes App Overview**: High-level application health
 2. **Backend Performance**: API metrics, response times
 3. **Frontend Metrics**: React app performance
@@ -482,35 +640,12 @@ make prometheus
 5. **LLM Monitoring**: Ollama usage, model performance
 6. **Infrastructure**: Node resources, pod status
 
-### **🚨 Alerting and Notifications**
-
-#### **Pre-configured Alerts**
-- **Pod Crash**: When any pod restarts unexpectedly
-- **High Memory Usage**: When memory usage exceeds 80%
-- **High CPU Usage**: When CPU usage exceeds 80%
-- **Database Connection Issues**: When PostgreSQL is unreachable
-- **LLM Service Down**: When Ollama service is unavailable
-- **API Error Rate**: When error rate exceeds 5%
-
-#### **Alert Channels**
-- **Email**: Configure SMTP settings in AlertManager
-- **Slack**: Webhook integration for team notifications
-- **PagerDuty**: For critical production alerts
-
-### **🔍 Debugging and Troubleshooting**
-
-#### **Quick Health Checks**
-```bash
-# Check all pod status
-make minikube-status
-
-# View application logs
-make minikube-logs
-
-# View monitoring logs
-make monitoring-logs
-
-# Check specific service logs
+#### **Pre-configured Dashboards:**
+- **Kubernetes Cluster Overview**: Overall cluster health
+- **Pod Metrics**: Individual pod performance
+- **Node Metrics**: Node resource usage
+- **Service Discovery**: All discovered targets
+- **Application Metrics**: Custom Notes App metrics
 kubectl logs -l app=notes-app-backend --tail=50
 kubectl logs -l app=notes-app-frontend --tail=50
 ```
